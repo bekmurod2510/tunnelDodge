@@ -1,12 +1,11 @@
 export class Spells {
-  constructor(canvasWidth, src) {
+  constructor(canvasWidth, ImageSrc, speed) {
     this.width = 50;
     this.height = 50;
     this.x = Math.random() * (canvasWidth - this.width);
     this.y = -50; //starting position (above the canvas)
-    this.speed = 2; // different speeds
-    this.image = new Image();
-    this.image.src = src;
+    this.speed = speed; // different speeds
+    this.image = ImageSrc;
   }
 
   update() {
@@ -14,7 +13,9 @@ export class Spells {
   }
 
   draw(ctx) {
-    ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+    if (this.image) {
+      ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+    }
   }
 
   isOffScreen(canvasHeight) {

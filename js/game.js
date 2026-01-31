@@ -1,9 +1,35 @@
 import { Spells } from "./Spells.js";
 import { updateScore } from "./score.js";
 
-let spells = [];
-let framesUntilNextSpawn = 0;
+/*======== Spells logic handled here =======*/
+const spellLibrary = {};
+const SPELL_DATA = [
+  { name: "alacrity", path: "./images/Alactiry.png" },
+  { name: "coldSnap", path: "./images/ColdSnap.png" },
+  { name: "ghostWalk", path: "./images/GhostWalk.png" },
+  { name: "iceWall", path: "./images/IceWall.png" },
+  { name: "emp", path: "./images/Emp.png" },
+  { name: "tornado", path: "./images/Tornado.png" },
+  { name: "sunStrike", path: "./images/SunStrike.png" },
+  { name: "forgeSpirit", path: "./images/forgeSpirit.png" },
+  { name: "chaosMeteor", path: "./images/chaosMeteor.png" },
+  { name: "deafeningBlast", path: "./images/deafeningBlast.png" },
+];
 
+SPELL_DATA.forEach((data) => {
+  const img = new Image();
+  img.src = data.path;
+  spellLibrary[data.name] = img;
+});
+
+let spells = [];
+let MaximumFramesBetweenSpells = 200;
+let framesUntilNextSpawn = 0;
+let speed = 2;
+let MAX_SPEED = 15;
+let SPEED_INCREMENT = 0.1;
+
+//setup
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const dpr = window.devicePixelRatio || 1;
@@ -21,57 +47,31 @@ function setupCanvas() {
 }
 
 function handleObstacles() {
-  let spellNum = Math.floor(Math.random() * (9 - 0) + 0);
   if (framesUntilNextSpawn <= 0) {
-    let spellName;
-    switch (spellNum) {
-      case 0:
-        spellName = "./images/Alactiry.png";
-        break;
-      case 1:
-        spellName = "./images/ColdSnap.png";
-        break;
-      case 2:
-        spellName = "./images/GhostWalk.png";
-        break;
-      case 3:
-        spellName = "./images/IceWall.png";
-        break;
-      case 4:
-        spellName = "./images/Emp.png";
-        break;
-      case 5:
-        spellName = "./images/Tornado.png";
-        break;
-      case 6:
-        spellName = "./images/SunStrike.png";
-        break;
-      case 7:
-        spellName = "./images/forgeSpirit.png";
-        break;
-      case 8:
-        spellName = "./images/chaosMeteor.png";
-        break;
-      case 9:
-        spellName = "./images/deafeningBlast.png";
-        break;
-      default:
-        spellName = "./images/Invalid.png"; // or keep as "Invalid spell"
+    const randomSpellData =
+      SPELL_DATA[Math.floor(Math.random() * SPELL_DATA.length)];
+    const loadedImg = spellLibrary[randomSpellData.name];
+
+    spells.push(new Spells(window.innerWidth, loadedImg, speed));
+    framesUntilNextSpawn = MaximumFramesBetweenSpells;
+    if (MaximumFramesBetweenSpells > 60) {
+      MaximumFramesBetweenSpells -= 5;
     }
-    spells.push(new Spells(window.innerWidth, spellName));
-    framesUntilNextSpawn = 150;
+    if (speed < MAX_SPEED) {
+      speed += SPEED_INCREMENT;
+    }
   }
   framesUntilNextSpawn--;
 
-  spells.forEach((spell, index) => {
-    spell.update();
-    spell.draw(ctx);
+  for (let i = spells.length - 1; i >= 0; i--) {
+    spells[i].update();
+    spells[i].draw(ctx);
 
-    if (spell.isOffScreen(window.innerHeight)) {
+    if (spells[i].isOffScreen(window.innerHeight)) {
       updateScore(1);
-      spells.splice(index, 1);
+      spells.splice(i, 1);
     }
-  });
+  }
 }
 
 function gameLoop() {
@@ -82,8 +82,7 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
-window.addEventListener("mousemove", (event) =>
-  player.update(event.clientX, event.clientY),
-);
+//In case somebody resizes the browser window
+window.addEventListener("resize", setupCanvas);
 setupCanvas();
 gameLoop();
